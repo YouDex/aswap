@@ -5,21 +5,20 @@
   * MIT Licensed Copyright(c) 2018-2019
   */
 
- const express = require("express")
- const app = express()
-
- const axios = require('axios') //  AXIOS - compact lib for HttpRequest
-
- const btcUrl = 'https://api.blockcypher.com/v1/btc/test3' //  Blochcypher API provider for Bitcoin testnet3
+ const express = require("express"),
+     app = express(),
+     axios = require('axios'), //  AXIOS - compact lib for HttpRequest
+     btcUrl = 'https://api.blockcypher.com/v1/btc/test3', //  Blochcypher API provider for Bitcoin testnet3
+     token = 'c97f6432c2ba4d3b8d3ced1407e9ec0a',
+     alice = require("../../private/keystore/alice"), //  address and private key in Ethereum (Youdex) and Bitcoin;
+     bob = require("../../private/keystore/bob") //  address and private key in Ethereum (Youdex) and Bitcoin;
 
  //  Route - check connect to API provider
- app.get("/btc3/api/:token", (req, res) => {
-     const token = req.params.token
-     axios.get(btcUrl + '/balance/' + 'token=' + token)
+ app.get("/btc3/api/", (req, res) => {
+     axios.get(btcUrl)
          .then(response => {
              res.header("Access-Control-Allow-Origin", "*")
-             res.json({ error: false, host: btcUrl, limit: response.data.limit })
-             console.log('p: ' + btcUrl + '  limit:' + response.data.limit)
+             res.json({ error: false, host: btcUrl, btcFee: response.data.medium_fee_per_kb })
          })
          .catch(error => {
              res.header("Access-Control-Allow-Origin", "*")
@@ -29,13 +28,13 @@
  })
 
  //  Route - balance of address
- app.post("/btc3/balance/:addrs", (req, res) => {
+ app.get("/btc3/balance/:name", (req, res) => {
      //  Standart format API 
-     const addrsBTC = req.params.addrs
+     const addrsBTC = eval(req.params.name).btcAddrs;
      axios.get(btcUrl + '/addrs/' + addrsBTC + '/balance')
          .then(response => {
              res.header("Access-Control-Allow-Origin", "*")
-             res.json({ balance: response.data.final_balance / 10 ** 8 })
+             res.json({ balance: response.data.final_balance / 10 ** 8, address: addrsBTC })
          })
          .catch(error => {
              console.log(error)

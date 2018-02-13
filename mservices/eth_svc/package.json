@@ -1,11 +1,11 @@
 {
     "name": "eth_svc",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "eth_api microservice",
-    "main": "service.js",
+    "main": "micro.js",
     "scripts": {
         "test": "echo \\\\\\\"Error: no test specified\\\\\\\" && exit 1",
-        "start": "node service.js"
+        "start": "node micro"
     },
     "keywords": [
         "ethereum",
@@ -17,9 +17,5 @@
     ],
     "author": "Oleg Tomin",
     "license": "MIT",
-    "dependencies": {
-        "axios": "^0.17.1",
-        "express": "^4.16.2",
-        "web3": "^0.19.1"
-    }
+    "dependencies": {}
 }

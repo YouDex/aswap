@@ -1,24 +1,21 @@
 {
     "name": "btc3_svc",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "BTC API testnet3 microservices",
-    "main": "service.js",
+    "main": "micro.js",
     "scripts": {
         "test": "echo \\\\\\\"Error: no test specified\\\\\\\" && exit 1",
-        "start": "node service.js"
+        "start": "node micro"
     },
-     "keywords": [
+    "keywords": [
+        "youdex",
+        "DEX",
         "btc3",
         "testnet",
-        "balance",
-        "Tx",
         "API",
         "microservice"
     ],
     "author": "Oleg Tomin",
     "license": "MIT",
-    "dependencies": {
-        "axios": "^0.17.1",
-        "express": "^4.16.2"
-    }
+    "dependencies": {}
 }

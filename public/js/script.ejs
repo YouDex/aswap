@@ -1,18 +1,13 @@
 <script type="text/javascript">
     //  Initial values
-    var valueBTC = valueETH = valueYODA = 0;
-//    var summBTCA = summETHA = summYODAA = 0; 
-    alice = {
-        addrsE: "0x",
-        summ: [0,0,0]
-    }
-    bob = alice
-    var summBTCA = summETHA = summYODAA = 0;
-    var summBTCB = summETHB = summYODAB = 0;
-    var summBTCP = summETHP = summYODAP = 0;
-    var ethPriceBTC = ethPriceUSD = YODAPrice = 0;
-    var nStr = stepN = orderID = 0;
-    var timeNow = "";
+    var valueBTC = valueETH = valueYODA = 0,
+        summBTCA = summETHA = summYODAA = 0, 
+        summBTCA = summETHA = summYODAA = 0,
+        summBTCB = summETHB = summYODAB = 0,
+        summBTCP = summETHP = summYODAP = 0,
+        ethPriceBTC = ethPriceUSD = YODAPrice = 0,
+        nStr = stepN = orderID = 0,
+        timeNow = "";
 
     function nextStep() {
         stepN = stepN + 1;
@@ -25,17 +20,11 @@
         } else if (stepN == 2) {
             var ff = semafor(1, 0, 0);
             showMess('Alice makes pledge Tx in YODAs');
-            var tx = makeYODATX(addrsETHA, ethPrivateKeyA, addrsETHP, valueYODA);
-            var ff = semafor(0, 0, 1);
-            showMess("Plasmoid sends Alice's Tx to YODAx");
-            sendTx(addrsETHA, addrsETHP, tx);
+            var tx = makeYODATX('alice','plasmoid', valueYODA);
         } else if (stepN == 3) {
             var ff = semafor(0, 1, 0);
             showMess('Bob makes pledge Tx in YODAs');
-            var tx = makeYODATX(addrsETHB, ethPrivateKeyB, addrsETHP, valueYODA);
-            var ff = semafor(0, 0, 1);
-            showMess("Plasmoid sends Bob's Tx to YODAx");
-            sendTx(addrsETHB, addrsETHP, tx);
+            var tx = makeYODATX('bob', 'plasmoid', valueYODA);
         } else if (stepN == 4) {
             showBalances();
             showMess('Smart contract DEx: inDepo in progress');
@@ -75,69 +64,47 @@
     //  YODA functions  
 
     function startDEx() {
-        orderID = 0;
-        //        blockN = YODA3.eth.blockNumber;
-        var filter = DExContract.StartDEx({
-                maker: addrsETHA
-            }
-            /*    , {
-                    fromBlock: blockN,
-                    toBlock: 'latest'
-                } */
-        );
-        //        console.log('set filter for contract event');
-        filter.watch(function(err, event) {
-            if (!err) {
-                showMess('Smart contract DEx: startDEx Tx is successful');
-                filter.stopWatching();
-                console.log('order=' + event.args._order + ' from ' + event.args.maker + ' to ' + event.args.taker + ' via: ' + event.args.plasmoid + ' eth: ' + event.args.ethAmount / 10 ** 18 + ' btc: ' + event.args.btcAmount / 10 ** 8 + ' pledge (L): ' + event.args.pledgeYODAAmount / 10 ** 9);
-                orderID = event.args._order;
-                nextStep();
-            } else {
-                console.log("Error " + err)
-            };
-        });
-        showMess('Smart contract DEx: form and send startDEx Tx');
-        var accountFrom = addrsETHB;
-        var privateKey = ethPrivateKeyB;
-        var myCallData = DExContract.openDEx.getData(addrsETHA, addrsETHP, valueETH * 10 ** 18, valueBTC * 10 ** 8, valueYODA * 10 ** 9); // Data for Ethereum transaction call smart contract DEx
-        var accountTo = DExAddrs;
-        var countTx = YODA3.eth.getTransactionCount(accountFrom);
-        var txParams = {
-            nonce: countTx,
-            gasPrice: gasPrice,
-            gasLimit: gasLimit,
-            to: accountTo,
-            value: value0,
-            data: myCallData,
-            // EIP 155 chainId - mainnet: 1, ropsten: 3, 1337 - private
-            chainId: 1337
+        if (isYODAApi) {
+            showMess('Smart contract DEx: form and send startDEx Tx');
+            var jsonData = JSON.stringify({ valueA: valueBTC, valueB: valueETH, valueY: valueYODA})
+            $.get(hostYODAApi + 'startDEX/' + jsonData)
+                .then(function(d) {
+                    showMess('Smart contract DEx: startDEx Tx is successful');
+                    orderID = d.id
+                    console.log('order=' + d.id + ' from ' + d.maker + ' to ' + d.taker + ' via: ' + d.plasmoid + ' eth: ' + d.ethAmount / 10 ** 18 + ' btc: ' + d.btcAmount / 10 ** 8 + ' pledge (YODA): ' + d.pledgeYODAAmount / 10 ** 9);
+                    nextStep();
+                })
+                .fail(function(err) {
+                    console.log(err.status + err.responseText)
+                })
+
         }
-        var tx = new EthJS.Tx(txParams);
-        tx.sign(privateKey);
-        var serializedTx = tx.serialize()
-        YODA3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
+     else {
+        }
     }
 
-    function sendTx(from, to, tx) {
-        //        console.log('set filter for contract event Transfer');
-        var filter = tokenContract.Transfer({
-            from: from,
-            to: to
-        });
-        filter.watch(function(err, event) {
-            if (!err) {
-                showMess('Transfer YODAs Tx is successful');
-                filter.stopWatching();
-                nextStep();
-            } else {
-                console.log("Error tx " + err)
-            };
-        });
-        YODA3.eth.sendRawTransaction(tx);
+    function makeYODATX(from, to, summ) {
+        if (isYODAApi) {
+            var jsonData = JSON.stringify({ from: from, to: to, valueY: summ})
+            $.get(hostYODAApi + 'makeTX/' + jsonData)
+                .then(function(d) {
+                    showMess("Transfer " + from + "'s" + " YODAs Tx is successful");
+                    console.log('hash Tx=' + d.hash);
+                    nextStep();
+                })
+                .fail(function(err) {
+                    console.log(err.status + err.responseText)
+                })
+
+        }
+     else {
+        }
+ 
     }
+
 
     function callDExIn() {
+        return;
         var filter = DExContract.InDepo({
             _order: orderID
         });
@@ -163,9 +130,9 @@
             gasLimit: gasLimit,
             to: accountTo,
             value: value0,
-            data: myCallData,
+            data: myCallData
             // EIP 155 chainId - mainnet: 1, ropsten: 3, 1337 - private
-            chainId: 1337
+            //chainId: 1337
         }
         var tx = new EthJS.Tx(txParams);
         tx.sign(privateKey);
@@ -209,25 +176,6 @@
         YODA3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'));
     }
 
-    function makeYODATX(accountFrom, privateKey, spender, summ) {
-        var accountTo = tokenAddrs;
-        var countTx = YODA3.eth.getTransactionCount(accountFrom);
-        var tokenBalance = tokenContract.balanceOf(accountFrom) / 10 ** 9;
-        var myCallData = tokenContract.transfer.getData(spender, summ * 10 ** 9);
-        var txParams = {
-            nonce: countTx,
-            gasPrice: gasPrice,
-            gasLimit: gasLimit,
-            to: accountTo,
-            value: value0,
-            data: myCallData,
-            chainId: 1337
-        }
-        var tx = new EthJS.Tx(txParams);
-        tx.sign(privateKey);
-        var serializedTx = tx.serialize();
-        return '0x' + serializedTx.toString('hex');
-    }
 
     //  Atomic swap function
     function atomicSwap() {
