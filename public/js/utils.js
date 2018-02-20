@@ -5,43 +5,71 @@
  * MIT Licensed Copyright(c) 2018-2019
  */
 
-var isEthApi = isBtcApi = isYODAApi = flag = false,
+var isYODAApi = isEthApi = isBtcApi = flag = false,
     btcFee = 0, myUser = "new",
     hostBtc
 
     function initUser(user) {
-        $.get(hostYODAApi + 'user/' + user)
-            .then(function(d) {
-                if (d.busy) {
-                    modal.style.display = "block";
-                    document.getElementById('alert').innerText = 'Sorry! Atomic Swap Demo is occupied by another user! Please wait...'
-                    document.getElementById("Place").disabled = true;
-                    document.getElementById("Fill").disabled = true;
-                } else if (myUser == "new") {
-                    myUser = "old"
-                    document.getElementById('alert').innerText = 'Now you can start!'
+        if (isApi) {
+            $.get(hostEthApi + 'user/' + user)
+               .then(function(d) {
+             })
+                .fail(function(err) {
+                    isApi = false;
+                    serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
+                if (err.status == 0) console.log('!!!ETH API Microservice not runs')
+                else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
+                return
+             })
+             $.get(hostBtcApi + 'user/' + user)
+             .then(function(d) {
+           })
+              .fail(function(err) {
+                isApi = false;
+                  serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
+              if (err.status == 0) console.log('!!!BTC API Microservice not runs')
+              else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
+              return
+           })
+             $.get(hostYODAApi + 'user/' + user)
+               .then(function(d) {
+                  if (d.busy) serviceStop('Sorry! Atomic Swap Demo is occupied by another user! Please wait...', false)
+                  else if (myUser == "new") {
+                    myUser = "old";
+                    document.getElementById('alert').innerText = 'Now you can start!';
                     document.getElementById("Place").disabled = false;
-                }
-            })
-            .fail(function(err) {
-                isYODAApi = false
+                  }
+             })
+                .fail(function(err) {
+                    isApi = false;
+                    serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
                 if (err.status == 0) console.log('!!!YODA API Microservice not runs')
                 else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
-            })
-        }     
+             })
+        }
+        else serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...')
+    }     
+
+function serviceStop(text, stop) {
+    modal.style.display = "block";
+    document.getElementById('alert').innerText = text;
+    document.getElementById("Place").disabled = true;
+    document.getElementById("Fill").disabled = true;
+    if (stop) clearInterval(userActiveCheck);
+}
 
 //  Init APIs function
 function initApi() {
     $.get(hostYODAApi + 'api/')
         .then(function(d) {
             if (!d.error) {
-                isYODAApi = true
-                gasPrice = d.gasPrice
+                isYODAApi = true;
+                gasPrice = d.gasPrice;
                 console.log('YODA API enabled on host: ' + d.host + ', gasPrice=' + gasPrice / 10 ** 9 + ' Gwei')
             } else {
-                isYODAApi = false
+                isYODAApi = false;
                 gasPrice = 0
-                console.log('!!!YODA API NOT enabled. Microservice says: YODAx node not response')
+                console.log('!!!YODA API NOT enabled. Microservice says: Youdex node not response')
             }
         })
         .fail(function(err) {
@@ -49,6 +77,7 @@ function initApi() {
             if (err.status == 0) console.log('!!!YODA API Microservice not runs')
             else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
         })
+
     $.get(hostEthApi + 'api/')
         .then(function(d) {
             if (!d.error) {
@@ -66,13 +95,14 @@ function initApi() {
             if (err.status == 0) console.log('!!!ETH API Microservice not runs')
             else console.log('!!!ETH API NOT enabled!!! Microservice says: ' + err.responseText)
         })
+
     $.get(hostBtcApi + 'api/')
         .then(function(d) {
             if (!d.error) {
                 isBtcApi = true
                 btcFee = d.btcFee / 2 //  let TX size 500 byte 
                 hostBtc = d.host
-                console.log('BTC API enabled on host: ' + d.host + ', btcFee=' + btcFee + 'Sat')
+                console.log('BTC API enabled on host: ' + d.host + ', btcFee=' + btcFee + ' Sat')
             } else {
                 isBtcApi = false
                 console.log('!!!BTC API NOT enabled. Microservice says: Blockcypher.com not response')
@@ -83,7 +113,16 @@ function initApi() {
             if (err.status == 0) console.log('!!!BTC API Microservice not runs')
             else console.log('!!!BTC API NOT enabled!!! Microservice says: ' + err.responseText)
         })
-}
+
+        if (isYODAApi && isEthApi && isBtcApi) isApi = true
+        else {
+            var timeOut = apiInterval = ""
+            timeOut = setTimeout(function() {
+                if (isYODAApi && isEthApi && isBtcApi) isApi = true
+                else isApi = false
+            }, 5000)
+        }
+    }
 
 //  ShowBalanses function
 function showBalances() {
@@ -135,6 +174,7 @@ function balanceEth(user) {
             if (user == "bob") summETHB = summETH
         })
         .fail(function(err) {
+            isApi = false;
             document.getElementById(user + 'EthBalance').innerText = ' NaN ';
             console.log(err.status + err.responseText)
         })
@@ -152,6 +192,7 @@ function balanceBtc(user) {
             }
         })
         .fail(function(err) {
+            isApi = false;
             document.getElementById(user + 'BtcBalance').innerText = ' NaN ';
             console.log(err.status + err.responseText)
         })
@@ -169,6 +210,7 @@ function balanceYODA(user) {
             else if (user == "plasmoid") summYODAP = summETH;
         })
         .fail(function(err) {
+            isApi = false;
             document.getElementById(user + 'YODABalance').innerText = ' NaN ';
             console.log(err.status + err.responseText)
         })
@@ -183,8 +225,15 @@ function showPrices() {
             ethPriceUSD = parseFloat(ethPriceUSD_s);
             YODAPrice = (1.0 / 1000.0).toFixed(6);
             YODAPrice_s = YODAPrice.toString();
+            isPrice = true;
             document.getElementById('plasmoidPrices').innerText = 'ETH/BTC= ' + ethPriceBTC_s + '; ETH/USD= ' + ethPriceUSD_s + '; YODA/ETH= ' + YODAPrice_s + ';';
-        });
+        })
+        .fail(function(err) {
+            document.getElementById('plasmoidPrices').innerText = hostPrice + ' not response!';
+            isPrice = false;
+            isApi = false;
+            console.log(err.status + err.responseText);
+        })
 }
 
 function showOrder(paramBTC) {

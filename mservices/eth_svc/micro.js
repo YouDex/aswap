@@ -21,6 +21,13 @@ const express = require("express"),
 var gasPrice = 0;
 Eth3 = "";
 
+//  Route - userActive function 
+app.get("/eth/user/:data", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.json({ busy: false });    
+})
+
+
 app.get("/eth/api/", (req, res) => {
     Eth3 = new Web3(new Web3.providers.HttpProvider(urlEth + token));
     Eth3.eth.getGasPrice(function(error, result) {

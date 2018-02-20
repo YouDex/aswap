@@ -17,7 +17,14 @@ const express = require("express"),
     bigi = require("bigi"),
     buffer = require('buffer');
 
-//  Route - check connect to API provider
+
+//  Route - userActive function 
+app.get("/btc3/user/:data", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.json({ busy: false });    
+})
+
+    //  Route - check connect to API provider
 app.get("/btc3/api/", (req, res) => {
     axios.get(btcUrl)
         .then(response => {

@@ -4,7 +4,8 @@
 <script>
 
 // Get the modal
-var modal = document.getElementById('myModal');
+var modal = document.getElementById('myModal'),
+    isApi = false;
 
 // Get the button that opens the modal
 var btn = document.getElementById("myBtn");
@@ -14,12 +15,12 @@ var span = document.getElementsByClassName("close")[0];
 
 // When the user clicks on <span> (x), close the modal
 span.onclick = function() {
-    modal.style.display = "none";
+    if (isApi) modal.style.display = "none";
 }
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
-    if (event.target == modal) {
+    if (event.target == modal && isApi) {
         modal.style.display = "none";
     }
 }
@@ -40,6 +41,6 @@ window.onclick = function(event) {
     showPrices();
     // open the modal 
     modal.style.display = "block";
-    var userActiveCheck = setInterval("initUser(myUser)", 3000);
+    var userActiveCheck = setInterval("initUser(myUser)", 6000);
 
 </script>
