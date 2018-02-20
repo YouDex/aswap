@@ -39,6 +39,7 @@ window.onclick = function(event) {
     showBalances();
     showPrices();
     // open the modal 
-    setInterval("initUser(myUser)", 3000);
+    modal.style.display = "block";
+    var userActiveCheck = setInterval("initUser(myUser)", 3000);
 
 </script>

@@ -53,6 +53,8 @@
             showMess('Smart contract DEx: outDepo in progress');
             callDExOut();
         } else if (stepN == 10) {
+            clearInterval(interval);
+            myUser = "dembel";
             var ff = semafor(0, 0, 0);
             flaf = false;
             showBalances();
