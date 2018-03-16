@@ -6,49 +6,65 @@
  */
 
 var isYODAApi = isEthApi = isBtcApi = flag = false,
-    btcFee = 0, myUser = "new",
-    hostBtc
+    btcFee = 0,
+    myUser = "new",
+    hostBtc;
 
-    function initUser(user) {
-        if (isApi) {
-            $.get(hostEthApi + 'user/' + user)
-               .then(function(d) {
-             })
-                .fail(function(err) {
-                    isApi = false;
-                    serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
+function start1() {
+    /*    $.ajaxSetup({
+            error: function(x, e) {
+
+                if (x.status == 0) {
+                    alert(' Check Your Network.');
+                } else if (x.status == 404) {
+                    alert('Requested URL not found.');
+
+                } else if (x.status == 500) {
+                    alert('Internel Server Error.');
+                } else {
+                    alert('Unknow Error.\n' + x.responseText);
+                }
+            }
+        });*/
+}
+
+function initUser(user) {
+    if (isApi) {
+        $.get(hostEthApi + 'user/' + user)
+            .then(function(d) {})
+            .fail(function(err) {
+                isApi = false;
+                serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
                 if (err.status == 0) console.log('!!!ETH API Microservice not runs')
+                else console.log('!!!ETH API NOT enabled!!! Microservice says: ' + err.responseText)
+                return
+            })
+        $.get(hostBtcApi + 'user/' + user)
+            .then(function(d) {})
+            .fail(function(err) {
+                isApi = false;
+                serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
+                if (err.status == 0) console.log('!!!BTC API Microservice not runs')
                 else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
                 return
-             })
-             $.get(hostBtcApi + 'user/' + user)
-             .then(function(d) {
-           })
-              .fail(function(err) {
-                isApi = false;
-                  serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
-              if (err.status == 0) console.log('!!!BTC API Microservice not runs')
-              else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
-              return
-           })
-             $.get(hostYODAApi + 'user/' + user)
-               .then(function(d) {
-                  if (d.busy) serviceStop('Sorry! Atomic Swap Demo is occupied by another user! Please wait...', false)
-                  else if (myUser == "new") {
+            })
+        $.get(hostYODAApi + 'user/' + user)
+            .then(function(d) {
+                if (d.busy) serviceStop('Sorry! Atomic Swap Demo is occupied by another user! Please wait...', false)
+                else if (myUser == "new") {
                     myUser = "old";
                     document.getElementById('alert').innerText = 'Now you can start!';
                     document.getElementById("Place").disabled = false;
-                  }
-             })
-                .fail(function(err) {
-                    isApi = false;
-                    serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
+                }
+            })
+            .fail(function(err) {
+                isApi = false;
+                serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...', true);
                 if (err.status == 0) console.log('!!!YODA API Microservice not runs')
                 else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
-             })
-        }
-        else serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...')
-    }     
+            })
+    } else serviceStop('Sorry! Atomic Swap Demo is not work now! Please try later...')
+}
 
 function serviceStop(text, stop) {
     modal.style.display = "block";
@@ -60,7 +76,7 @@ function serviceStop(text, stop) {
 
 //  Init APIs function
 function initApi() {
-    $.get(hostYODAApi + 'api/')
+    $.get(hostYODAApi + 'api/ASWAP')
         .then(function(d) {
             if (!d.error) {
                 isYODAApi = true;
@@ -78,7 +94,7 @@ function initApi() {
             else console.log('!!!YODA API NOT enabled!!! Microservice says: ' + err.responseText)
         })
 
-    $.get(hostEthApi + 'api/')
+    $.get(hostEthApi + 'api/ASWAP')
         .then(function(d) {
             if (!d.error) {
                 isEthApi = true
@@ -96,7 +112,7 @@ function initApi() {
             else console.log('!!!ETH API NOT enabled!!! Microservice says: ' + err.responseText)
         })
 
-    $.get(hostBtcApi + 'api/')
+    $.get(hostBtcApi + 'api/ASWAP')
         .then(function(d) {
             if (!d.error) {
                 isBtcApi = true
@@ -114,15 +130,15 @@ function initApi() {
             else console.log('!!!BTC API NOT enabled!!! Microservice says: ' + err.responseText)
         })
 
-        if (isYODAApi && isEthApi && isBtcApi) isApi = true
-        else {
-            var timeOut = apiInterval = ""
-            timeOut = setTimeout(function() {
-                if (isYODAApi && isEthApi && isBtcApi) isApi = true
-                else isApi = false
-            }, 5000)
-        }
+    if (isYODAApi && isEthApi && isBtcApi) isApi = true
+    else {
+        var timeOut = apiInterval = ""
+        timeOut = setTimeout(function() {
+            if (isYODAApi && isEthApi && isBtcApi) isApi = true
+            else isApi = false
+        }, 5000)
     }
+}
 
 //  ShowBalanses function
 function showBalances() {
@@ -237,8 +253,8 @@ function showPrices() {
 }
 
 function showOrder(paramBTC) {
-    //    valueBTC = paramBTC - btcFee / 10 ** 8;
-    valueBTC = 0.01
+    valueBTC = paramBTC - btcFee / 10 ** 8;
+    //    valueBTC = 0.01
     summBTCA = paramBTC;
     document.getElementById('summBTCA').value = valueBTC.toFixed(6);
     valueETH = valueBTC / ethPriceBTC;
@@ -314,7 +330,8 @@ function placeOrder() {
 
 function fillOrder() {
     showMess("Bob accepts order: " + valueBTC.toFixed(3) + "BTC to  " + valueETH.toFixed(3) + "ETH with pledge:" + valueYODA.toFixed(3) + "YODA");
-    stepN = 0;
+    //   stepN = 0;
+    stepN = 4; ////  for bitcoin Tx tests only
     orderID = 0;
     nextStep();
     semafor(0, 0, 1);

@@ -7,6 +7,7 @@
         summBTCP = summETHP = summYODAP = 0,
         ethPriceBTC = ethPriceUSD = YODAPrice = 0,
         nStr = stepN = orderID = 0,
+        myError = "",
         timeNow = "";
 
     function nextStep() {
@@ -152,21 +153,31 @@
         if (isBtcApi && isEthApi) {
             showMess('Alice send ' + valueBTC.toFixed(6) + 'BTC to Bob Tx to Bitcoin');
             var jsonData = JSON.stringify({ from: 'alice', to: 'bob', valueB: valueBTC * 10 ** 8})
-            $.get(hostBtcApi + 'makeTX/' + jsonData)
+            $.get(hostBtcApi + 'makeTx/' + jsonData)
                 .then(function(d) {
+                    if (!d.error) {
                     showMess("BTC Tx is successful. Checking Bitcoin confirmation");
-                    console.log('https://live.blockcypher.com/btc-testnet/tx/' + d.hash + '/');
+//                     console.log('https://live.blockcypher.com/btc/tx/' + d.hash + '/');  //  main net
+                    console.log('https://live.blockcypher.com/btc-testnet/tx/' + d.hash + '/'); //  testnet
                     document.getElementById('bobStatus').innerText = valueBTC.toFixed(6) + "BTC Tx received at " + d.time;
                     var ff = semafor(3, 0, 1);
+                    }
+                    else {
+                        myError = error;
+                        console.log('BTC makeTx error: host not response!');
+                    isApi = false;
+                    }
+//  return;     for bitcoin transaction test only
                     waitConfirmBtc(d.hash);
                })
                 .fail(function(err) {
                     console.log(err.status + err.responseText)
                 })
     //  Bob's ETH transfer
+    return;
             showMess('Bob send ' + valueETH.toFixed(3) + 'ETH Tx to Ethereum');
             var jsonData = JSON.stringify({ from: 'bob', to: 'alice', valueE: valueETH * 10 ** 18});
-            $.get(hostEthApi + 'makeTX/' + jsonData)
+            $.get(hostEthApi + 'makeTx/' + jsonData)
                 .then(function(d) {
                     showMess("ETH Tx is successful. Checking Ethereum confirmation");
                     console.log('ETH Tx hash ' + d.hash);

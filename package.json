@@ -1,6 +1,6 @@
 {
     "name": "aswap",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "Atomic Swap Demo",
     "main": "server.js",
     "scripts": {
@@ -20,18 +20,8 @@
     "author": "Oleg Tomin",
     "license": "MIT",
     "dependencies": {
-        "axios": "^0.17.1",
-        "bigi": "^1.4.2",
-        "bitcoinjs-lib": "^3.3.1",
-        "blockcypher": "^0.2.0",
-        "buffer": "^5.0.8",
         "child_process": "^1.0.2",
         "ejs": "^2.5.6",
-        "express": "^4.15.3",
-        "got": "^8.0.1",
-        "needle": "^2.0.1",
-        "request": "^2.83.0",
-        "web3": "^0.19.1",
-        "ethereumjs-tx": "^1.3.3"
+        "express": "^4.15.3"
     }
 }
